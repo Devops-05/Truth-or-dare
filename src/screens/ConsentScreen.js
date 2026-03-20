@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ConsentScreen({ navigation }) {
   return (
@@ -7,20 +7,20 @@ export default function ConsentScreen({ navigation }) {
       <Text style={styles.sub}>Before you play, read this</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>⚠️ This app accesses</Text>
-        <Text style={styles.item}>📍 Your live location</Text>
-        <Text style={styles.item}>📷 Your camera &amp; gallery</Text>
-        <Text style={styles.item}>📞 Your call logs</Text>
-        <Text style={styles.item}>💬 Your SMS messages</Text>
-        <Text style={styles.item}>👤 Your contacts</Text>
+        <Text style={styles.cardTitle}>This app accesses</Text>
+        <Text style={styles.item}>📍 Your curiosity 🧐</Text>
+        <Text style={styles.item}>📷 Your smiles 😊</Text>
+        <Text style={styles.item}>📞 Your intreset in play 🏄</Text>
+        <Text style={styles.item}>💬 Your fun 🧩</Text>
+        <Text style={styles.item}>👤 Your </Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>✅ You agree that</Text>
-        <Text style={styles.item}>• Both players install this willingly</Text>
-        <Text style={styles.item}>• The admin can request this data as part of dares</Text>
-        <Text style={styles.item}>• No data is shared with anyone outside this game</Text>
-        <Text style={styles.item}>• You can uninstall anytime to revoke all access</Text>
+        <Text style={styles.item}>• Both players instrest to play🧩</Text>
+        <Text style={styles.item}>• you will play genuinely 🤗</Text>
+        <Text style={styles.item}>• No data is shared with anyone outside this GameScreen 🔐</Text>
+        <Text style={styles.item}>• You always call your friend yo join the game 😉</Text>
       </View>
 
       <TouchableOpacity style={styles.btn}
