@@ -32,7 +32,6 @@
     "plugins": [
       "expo-location",
       "expo-image-picker",
-      "expo-contacts",
       "expo-asset"
     ],
     "extra": {

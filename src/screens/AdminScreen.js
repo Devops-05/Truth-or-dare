@@ -1,9 +1,8 @@
-import * as Contacts from 'expo-contacts';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
+import { ref, onValue } from 'firebase/database';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
-import { onValue, ref } from 'firebase/database';
-import { useEffect, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from '../firebase';
 
 export default function AdminScreen({ route, navigation }) {
@@ -11,8 +10,6 @@ export default function AdminScreen({ route, navigation }) {
   const [room,         setRoom]         = useState(null);
   const [liveLocation, setLiveLocation] = useState(null);
   const [latestPhoto,  setLatestPhoto]  = useState(null);
-  const [contacts,     setContacts]     = useState([]);
-  const [callLogs,     setCallLogs]     = useState([]);
   const [activeTab,    setActiveTab]    = useState('location');
   const [loading,      setLoading]      = useState(false);
 
@@ -23,8 +20,8 @@ export default function AdminScreen({ route, navigation }) {
       if (!snap.exists()) return;
       const data = snap.val();
       setRoom(data);
-      if (data.sharedLoc)   setLiveLocation(data.sharedLoc);
-      if (data.photo)       setLatestPhoto(data.photo);
+      if (data.sharedLoc) setLiveLocation(data.sharedLoc);
+      if (data.photo)     setLatestPhoto(data.photo);
     });
     return () => unsub();
   }, []);
@@ -33,7 +30,7 @@ export default function AdminScreen({ route, navigation }) {
     setLoading(true);
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission denied', 'Location permission was not granted.');
+      alert('Location permission was not granted.');
       setLoading(false); return;
     }
     const loc = await Location.getCurrentPositionAsync({});
@@ -49,7 +46,7 @@ export default function AdminScreen({ route, navigation }) {
     setLoading(true);
     const { status } = await MediaLibrary.requestPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission denied', 'Gallery permission was not granted.');
+      alert('Gallery permission was not granted.');
       setLoading(false); return;
     }
     const assets = await MediaLibrary.getAssetsAsync({
@@ -64,20 +61,6 @@ export default function AdminScreen({ route, navigation }) {
     setLoading(false);
   };
 
-  const requestContacts = async () => {
-    setLoading(true);
-    const { status } = await Contacts.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission denied', 'Contacts permission was not granted.');
-      setLoading(false); return;
-    }
-    const { data } = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
-    });
-    setContacts(data.slice(0, 20));
-    setLoading(false);
-  };
-
   const openMap = () => {
     if (!liveLocation) return;
     Linking.openURL(`https://maps.google.com/?q=${liveLocation.lat},${liveLocation.lng}`);
@@ -87,7 +70,6 @@ export default function AdminScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>← Back</Text>
@@ -98,14 +80,12 @@ export default function AdminScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabs}>
-        {['location','photo','contacts'].map(t => (
+        {['location','photo'].map(t => (
           <TouchableOpacity key={t} style={[styles.tab, activeTab===t && styles.tabActive]}
             onPress={() => setActiveTab(t)}>
             <Text style={[styles.tabTxt, activeTab===t && styles.tabTxtActive]}>
-              {t === 'location' ? '📍' : t === 'photo' ? '📷' : '👤'}
-              {' '}{t.charAt(0).toUpperCase() + t.slice(1)}
+              {t === 'location' ? '📍 Location' : '📷 Photo'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -113,16 +93,13 @@ export default function AdminScreen({ route, navigation }) {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
 
-        {/* Location Tab */}
         {activeTab === 'location' && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📍 Their Location</Text>
-            <Text style={styles.sectionSub}>Request their current location</Text>
-
+            <Text style={styles.sectionSub}>Get their current location</Text>
             <TouchableOpacity style={styles.actionBtn} onPress={requestLocation} disabled={loading}>
-              <Text style={styles.actionBtnTxt}>{loading ? 'Getting location…' : '📍 Get Current Location'}</Text>
+              <Text style={styles.actionBtnTxt}>{loading ? 'Getting location…' : '📍 Get Location'}</Text>
             </TouchableOpacity>
-
             {liveLocation && (
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>Coordinates</Text>
@@ -135,48 +112,19 @@ export default function AdminScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Photo Tab */}
         {activeTab === 'photo' && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📷 Latest Photo</Text>
-            <Text style={styles.sectionSub}>Reveal the most recent photo from their gallery</Text>
-
+            <Text style={styles.sectionSub}>Reveal most recent photo from gallery</Text>
             <TouchableOpacity style={styles.actionBtn} onPress={requestLatestPhoto} disabled={loading}>
               <Text style={styles.actionBtnTxt}>{loading ? 'Loading…' : '📷 Reveal Latest Photo'}</Text>
             </TouchableOpacity>
-
             {latestPhoto && (
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>Most Recent Photo</Text>
                 <Image source={{ uri: latestPhoto }} style={styles.photo} resizeMode="cover"/>
               </View>
             )}
-          </View>
-        )}
-
-        {/* Contacts Tab */}
-        {activeTab === 'contacts' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>👤 Contacts</Text>
-            <Text style={styles.sectionSub}>View their contacts list (first 20)</Text>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={requestContacts} disabled={loading}>
-              <Text style={styles.actionBtnTxt}>{loading ? 'Loading…' : '👤 Load Contacts'}</Text>
-            </TouchableOpacity>
-
-            {contacts.length > 0 && contacts.map((c, i) => (
-              <View key={i} style={styles.contactRow}>
-                <View style={styles.contactAvatar}>
-                  <Text style={styles.contactAvatarTxt}>{c.name?.[0] || '?'}</Text>
-                </View>
-                <View>
-                  <Text style={styles.contactName}>{c.name}</Text>
-                  <Text style={styles.contactNum}>
-                    {c.phoneNumbers?.[0]?.number || 'No number'}
-                  </Text>
-                </View>
-              </View>
-            ))}
           </View>
         )}
 
@@ -210,9 +158,4 @@ const styles = StyleSheet.create({
   mapBtn: { backgroundColor: 'rgba(0,229,255,0.1)', borderWidth: 1, borderColor: 'rgba(0,229,255,0.3)', borderRadius: 10, padding: 12, alignItems: 'center' },
   mapBtnTxt: { color: '#00e5ff', fontWeight: '600', fontSize: 14 },
   photo: { width: '100%', height: 280, borderRadius: 12 },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 12 },
-  contactAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,45,120,0.2)', alignItems: 'center', justifyContent: 'center' },
-  contactAvatarTxt: { color: '#ff6198', fontWeight: '800', fontSize: 16 },
-  contactName: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  contactNum: { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 },
 });
