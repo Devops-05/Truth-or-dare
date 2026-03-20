@@ -39,6 +39,9 @@
       "eas": {
         "projectId": "3199aca3-ede2-4977-a5de-5196d08f9e72"
       }
+    },
+    "ios": {
+      "bundleIdentifier": "com.truthordare.app"
     }
   }
 }
